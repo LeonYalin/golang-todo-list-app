@@ -58,15 +58,41 @@ func (tm *TodoManager) mainMenuDialog() {
 }
 
 func (tm *TodoManager) viewAllTodosDialog() {
-	fmt.Println("viewAllTodosDialog")
+	tm.io.Write(fmt.Sprintf("\n%s\n\n", util.YellowText("Availiable todos:")))
+
+	if len(tm.todos) == 0 {
+		tm.io.Write("No todos found.\n\n")
+	} else {
+		for i, todo := range tm.todos {
+			tm.io.Write(fmt.Sprintf("%s\n", util.TodoText(i+1, todo)))
+		}
+	}
+
+	tm.io.Write(fmt.Sprintf("%s\n", util.OptionText(types.GO_BACK, "Go back")))
+
+	answer := tm.io.Question(util.ENTER_AN_OPTION_TEXT, func(ans string) bool {
+		ansInt, err := strconv.Atoi(ans)
+		return ans != "" && err == nil && ansInt >= 0 && ansInt <= len(tm.todos)
+	})
+	if answer == types.GO_BACK {
+		tm.mainMenuDialog()
+	} else {
+		// TODO
+	}
 }
 
 func (tm *TodoManager) addTodoDialog() {
-	fmt.Println("addTodoDialog")
+	answer := tm.io.Question(fmt.Sprintf("%s\n", util.YellowText("Enter the todo description")), func(ans string) bool {
+		return ans != ""
+	})
+	fmt.Println("Todo created:", models.NewTodo(answer).Print())
+	tm.todos = append(tm.todos, models.NewTodo(answer))
+	tm.io.Write(fmt.Sprintf("\n%s\n\n", util.GreenText("Todo successfully added!")))
+	tm.mainMenuDialog()
 }
 
 func (tm *TodoManager) exitDialog() {
-	fmt.Println("exitDialog")
+	tm.io.Write(fmt.Sprintf("%s\n\n", util.YellowText("Exiting.. Bye!")))
 }
 
 func NewTodoManager(io IOManageable) *TodoManager {

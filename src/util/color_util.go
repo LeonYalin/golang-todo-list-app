@@ -2,8 +2,10 @@ package util
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/TwiN/go-color"
+	"github.com/leonyalin/todo-list/src/models"
 )
 
 func YellowText(text string) string {
@@ -20,4 +22,18 @@ func GreenText(text string) string {
 
 func OptionText(index string, text string) string {
 	return fmt.Sprintf("[%s]: %s", GreenText(index), text)
+}
+
+func TodoText(index int, todo *models.Todo) string {
+	indexText := ""
+	if index == -1 {
+		indexText = ""
+	} else {
+		if todo.Completed {
+			indexText = fmt.Sprintf("[%s]: ", GreenText(strconv.Itoa(index)))
+		} else {
+			indexText = fmt.Sprintf("[%s]: ", RedText(strconv.Itoa(index)))
+		}
+	}
+	return fmt.Sprintf("%s%s", indexText, todo.Description)
 }

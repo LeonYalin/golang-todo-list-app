@@ -1,9 +1,11 @@
 package src
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/leonyalin/todo-list/src/util"
 )
@@ -18,12 +20,14 @@ type IOManager struct {
 	name string
 }
 
-func (iom *IOManager) Scan() (text string) {
-	n, err := fmt.Scanln(&text)
+func (iom *IOManager) Scan() string {
+	reader := bufio.NewReader(os.Stdin)
+	line, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println(n, err)
+		fmt.Println("Error reading user input:", err)
 	}
-	return text
+	line = strings.Trim(line, "\n")
+	return line
 }
 
 func (iom *IOManager) Question(msg string, testAns func(ans string) bool) string {
