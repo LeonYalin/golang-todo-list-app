@@ -131,11 +131,51 @@ func (tm *TodoManager) addTodoDialog() {
 }
 
 func (tm *TodoManager) editTodoDescriptionDialog() {
-	fmt.Printf("editTodoDescriptionDialog")
+	answer := tm.io.Question("\nEnter the todo description\n\n", func(ans string) bool {
+		return ans != ""
+	})
+
+	index := slices.IndexFunc(tm.todos, func(todo *models.Todo) bool {
+		return todo.ID == tm.selectedTodoId
+	})
+	tm.todos[index].Description = answer
+
+	tm.io.Write(fmt.Sprintf("\n%s\n\n", util.GreenText("Description updated successfully")))
+	tm.viewAllTodosDialog()
 }
 
 func (tm *TodoManager) toggleTodoCompletedDialog() {
-	fmt.Printf("toggleTodoCompletedDialog")
+	nextCompleted := !tm.SelectedTodo().Completed
+	var nextCompletedText string
+	if nextCompleted {
+		nextCompletedText = util.GreenText("Completed")
+	} else {
+		nextCompletedText = util.RedText("Active")
+	}
+
+	answer := tm.io.Question(fmt.Sprintf("\nAre you sure you want to mark the %s as %s? [y/n]\n\n", util.YellowText(tm.SelectedTodo().Description), nextCompletedText), func(ans string) bool {
+		matched, err := regexp.MatchString(`^y|n$`, ans)
+		if err != nil {
+			fmt.Println("error answering deleteTodoDialog", err.Error())
+		}
+		return matched
+	})
+
+	shouldMark, err := regexp.MatchString(`^y$`, answer)
+	if err != nil {
+		fmt.Println("error matching deleteTodoDialog", err)
+	}
+
+	if shouldMark {
+		index := slices.IndexFunc(tm.todos, func(t *models.Todo) bool {
+			return t.ID == tm.selectedTodoId
+		})
+		tm.todos[index].Completed = nextCompleted
+		tm.io.Write(fmt.Sprintf("Todo successfully marked as %s\n\n", nextCompletedText))
+		tm.viewAllTodosDialog()
+	} else {
+		tm.editTodoDialog()
+	}
 }
 
 func (tm *TodoManager) deleteTodoDialog() {

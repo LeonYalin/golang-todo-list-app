@@ -35,5 +35,12 @@ func TodoText(index int, todo *models.Todo) string {
 			indexText = fmt.Sprintf("[%s]: ", RedText(strconv.Itoa(index)))
 		}
 	}
-	return fmt.Sprintf("%s%s", indexText, todo.Description)
+
+	text := ""
+	if todo.Completed {
+		text = fmt.Sprintf("%s - %s", todo.Description, GreenText("Completed"))
+	} else {
+		text = fmt.Sprintf("%s - %s", todo.Description, RedText("Active"))
+	}
+	return fmt.Sprintf("%s%s", indexText, text)
 }
