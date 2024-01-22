@@ -13,7 +13,7 @@ import (
 type IOManageable interface {
 	Scan() string
 	Write(msg string)
-	Question(msg string, testAns func(answer string) bool) string
+	Question(msg string, testAns func(ans string) bool) string
 }
 
 type IOManager struct {

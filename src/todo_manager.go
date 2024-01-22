@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -103,9 +104,12 @@ func (tm *TodoManager) editTodoDialog() {
 	tm.io.Write(fmt.Sprintf("%s\n", util.OptionText(types.GO_BACK, "Go back")))
 
 	answer := tm.io.Question(util.ENTER_AN_OPTION_TEXT, func(ans string) bool {
-		ansInt, err := strconv.Atoi(ans)
-		return ans != "" && err == nil && ansInt >= 0 && ansInt <= len(tm.todos)
+		index := slices.IndexFunc(tm.edit_todo_options, func(to types.TodoOption) bool {
+			return to.Key == ans
+		})
+		return ans != "" && (ans == types.GO_BACK || index > -1)
 	})
+
 	if answer == types.GO_BACK {
 		tm.selectedTodoId = ""
 		tm.viewAllTodosDialog()
@@ -121,7 +125,6 @@ func (tm *TodoManager) addTodoDialog() {
 	answer := tm.io.Question(fmt.Sprintf("%s\n", util.YellowText("Enter the todo description")), func(ans string) bool {
 		return ans != ""
 	})
-	fmt.Println("Todo created:", models.NewTodo(answer).Print())
 	tm.todos = append(tm.todos, models.NewTodo(answer))
 	tm.io.Write(fmt.Sprintf("\n%s\n\n", util.GreenText("Todo successfully added!")))
 	tm.mainMenuDialog()
@@ -137,6 +140,29 @@ func (tm *TodoManager) toggleTodoCompletedDialog() {
 
 func (tm *TodoManager) deleteTodoDialog() {
 	fmt.Printf("deleteTodoDialog")
+	answer := tm.io.Question(fmt.Sprintf("\nAre you sure you want to %s the %s? [y/n]\n\n", util.RedText("delete"), util.YellowText(tm.SelectedTodo().Description)), func(ans string) bool {
+		matched, err := regexp.MatchString(`^y|n$`, ans)
+		if err != nil {
+			fmt.Println("error answering deleteTodoDialog", err.Error())
+		}
+		return matched
+	})
+
+	shouldDelete, err := regexp.MatchString(`^y$`, answer)
+	if err != nil {
+		fmt.Println("error matching deleteTodoDialog", err)
+	}
+	if shouldDelete {
+		todosAfterDeletion := slices.DeleteFunc(tm.todos, func(t *models.Todo) bool {
+			return t.ID == tm.selectedTodoId
+		})
+		tm.todos = todosAfterDeletion
+		tm.selectedTodoId = ""
+		tm.io.Write(fmt.Sprintf("\n%s\n", util.GreenText("Todo successfully deleted!")))
+		tm.viewAllTodosDialog()
+	} else {
+		tm.editTodoDialog()
+	}
 }
 
 func (tm *TodoManager) exitDialog() {
